@@ -1,7 +1,13 @@
 # coding:utf-8
 from datetime import datetime
 from math import log
+
+import click
 import pandas as pd 
+from ding import DingHK
+
+ding_token = "6f0c3e73c7eb83ae86cc96c7b741af22403787d6a35d86bbdaa66c53218caadb"
+
 
 def parser(filename):
     res = []
@@ -28,13 +34,14 @@ def summary(datas):
     # total pv, uv, keys, bytes, code distribution
     # pv time distribution
     msg = ("pv: {}, uv: {}\nall keys: {}, total bytes: {}\n" 
-          "code:\n {}\n pv time:\n {}").format(
+           "\n{}\n\n{}").format(
             len(df),
             len(df['ip'].unique()),
             len(df['uri'].unique()),
             pretty_size(df['bytes'].sum()),
-            df.groupby(df['code']).size(),
-            df.groupby(df['time'].map(lambda x: x.hour )).size()
+            df.groupby(df['code']).size().reset_index(name='Size'),
+            df.groupby(df['time'].map(
+                lambda x: x.hour)).size().reset_index(name='Size')
           )
     return msg 
 
@@ -44,7 +51,15 @@ def pretty_size(n,pow=0,b=1024,u='B',pre=['']+[p+'i'for p in'KMGTPEZY']):
     return "%%.%if %%s%%s"%abs(pow%(-pow-1))%(n/b**float(pow),pre[pow],u)
 
 
-if __name__ == "__main__":
-    data = parser('download.log') 
-    print summary(data)
+@click.command()
+@click.argument('filepath')
+def main(filepath):
+    data = parser(filepath) 
+    msg = summary(data)
+    if msg:
+        ding = DingHK(ding_token)
+        ding.send_text(msg) 
 
+
+if __name__ == "__main__":
+    main()
