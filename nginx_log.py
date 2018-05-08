@@ -58,6 +58,7 @@ def main(filepath):
     msg = summary(data)
     if msg:
         ding = DingHK(ding_token)
+        ding.send_text(filepath)
         ding.send_text(msg) 
 
 
