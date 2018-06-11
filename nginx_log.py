@@ -19,20 +19,22 @@ def parser(filename):
                 # 9 status # 10 bytes
                 record = {
                     'ip': cl[0],
-                    'time': datetime.strptime(cl[3][1:], "%d/%B/%Y:%H:%M:%S"),
+                    'time': datetime.strptime(cl[3][1:], "%d/%b/%Y:%H:%M:%S"),
                     'uri': cl[7],
                     'code': cl[9],
                     'bytes': int(cl[10])
                 }
                 res.append(record)
             except Exception as e:
-                pass
+                print e 
     return res
 
 def summary(datas):
     df = pd.DataFrame(datas)
     # total pv, uv, keys, bytes, code distribution
     # pv time distribution
+    if len(datas) < 1:
+        return None
     msg = ("pv: {}, uv: {}\nall keys: {}, total bytes: {}\n" 
            "\n{}\n\n{}").format(
             len(df),
